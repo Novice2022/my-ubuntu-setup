@@ -2,6 +2,8 @@
 
 set -Eeuo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 echo "=== Updating packages ==="
 
 sudo apt update
@@ -15,10 +17,8 @@ sudo apt install -y \
     eza \
     fd-find \
     ripgrep \
-    tmux \
     btop \
-    jq \
-    ipython3
+    jq
 
 echo "=== Installing Oh My Zsh ==="
 
@@ -63,166 +63,38 @@ echo "=== Installing JetBrains Mono Nerd Font ==="
 if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
 
     FONT_DIR="$HOME/.local/share/fonts"
-    TMP_DIR="$(mktemp -d)"
 
     mkdir -p "$FONT_DIR"
 
-    cd "$TMP_DIR"
-
-    curl -LO \
-        https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz
-
-    mkdir font
-
-    tar -xf JetBrainsMono.tar.xz -C font
-
-    cp font/*.ttf "$FONT_DIR"
+    (
+        TMP_DIR="$(mktemp -d)"
+        cd "$TMP_DIR"
+        curl -LO \
+            https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz
+        mkdir font
+        tar -xf JetBrainsMono.tar.xz -C font
+        cp font/*.ttf "$FONT_DIR"
+        rm -rf "$TMP_DIR"
+    )
 
     fc-cache -fv
-
-    rm -rf "$TMP_DIR"
 fi
 
-echo "=== Generating Starship config ==="
+echo "=== Copying configs ==="
 
 mkdir -p "$HOME/.config"
 
-cat > "$HOME/.config/starship.toml" <<'EOF'
-"$schema" = 'https://starship.rs/config-schema.json'
+if [ -f "$HOME/.zshrc" ]; then
+    cp "$HOME/.zshrc" "$HOME/.zshrc.bak.$(date +%Y%m%d%H%M%S)"
+    echo "  Backup: ~/.zshrc -> ~/.zshrc.bak.$(date +%Y%m%d%H%M%S)"
+fi
+cp "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 
-add_newline = false
-
-format = """
-$os\
-$time \
-$directory\
-$git_branch\
-$git_status\
-$nodejs\
-$php\
-$docker_context\
-$cmd_duration\
-$line_break\
-$character
-"""
-
-[os]
-disabled = false
-
-[os.symbols]
-Ubuntu = " "
-Linux = " "
-
-[time]
-disabled = false
-time_format = "%H:%M"
-format = "[$time](#FF7B72) "
-
-[directory]
-style = "bold #58A6FF"
-truncation_length = 3
-read_only = " 󰌾"
-
-[git_branch]
-symbol = " "
-style = "bold #D2A8FF"
-
-[git_status]
-style = "#E3B341"
-
-[nodejs]
-symbol = " "
-style = "#7EE787"
-
-[php]
-symbol = " "
-style = "#79C0FF"
-
-[docker_context]
-symbol = " "
-style = "#58A6FF"
-
-[cmd_duration]
-min_time = 1000
-style = "#E3B341"
-
-[character]
-success_symbol = "[❯](bold #7EE787)"
-error_symbol = "[❯](bold #FF7B72)"
-vimcmd_symbol = "[❮](bold #58A6FF)"
-
-[aws]
-disabled = true
-
-[azure]
-disabled = true
-
-[gcloud]
-disabled = true
-
-[kubernetes]
-disabled = true
-
-[terraform]
-disabled = true
-
-[openstack]
-disabled = true
-
-[memory_usage]
-disabled = true
-
-[package]
-disabled = true
-
-[container]
-disabled = true
-EOF
-
-echo "=== Generating .zshrc ==="
-
-cat > "$HOME/.zshrc" <<'EOF'
-export PATH="$HOME/.local/bin:$PATH"
-
-export ZSH="$HOME/.oh-my-zsh"
-
-ZSH_THEME=""
-
-plugins=(
-    git
-    zsh-autosuggestions
-    zsh-completions
-    zsh-syntax-highlighting
-)
-
-source $ZSH/oh-my-zsh.sh
-
-eval "$(zoxide init zsh)"
-eval "$(starship init zsh)"
-
-[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && \
-source /usr/share/doc/fzf/examples/key-bindings.zsh
-
-[ -f /usr/share/doc/fzf/examples/completion.zsh ] && \
-source /usr/share/doc/fzf/examples/completion.zsh
-
-alias ls='eza --icons'
-alias ll='eza -la --icons'
-alias tree='eza --tree --icons'
-
-alias fd='fdfind'
-
-alias bat='batcat'
-alias cat='batcat'
-
-typeset -A ZSH_HIGHLIGHT_STYLES
-
-ZSH_HIGHLIGHT_STYLES[command]='fg=#58A6FF'
-ZSH_HIGHLIGHT_STYLES[builtin]='fg=#D2A8FF'
-ZSH_HIGHLIGHT_STYLES[path]='fg=#7EE787'
-ZSH_HIGHLIGHT_STYLES[alias]='fg=#79C0FF'
-ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#FF7B72'
-EOF
+if [ -f "$HOME/.config/starship.toml" ]; then
+    cp "$HOME/.config/starship.toml" "$HOME/.config/starship.toml.bak.$(date +%Y%m%d%H%M%S)"
+    echo "  Backup: ~/.config/starship.toml -> ~/.config/starship.toml.bak.$(date +%Y%m%d%H%M%S)"
+fi
+cp "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
 
 echo "=== Setting Zsh as default shell ==="
 
@@ -241,7 +113,7 @@ if [ -n "$PROFILE_ID" ]; then
     dconf write "${BASE}use-theme-colors" "false"
     dconf write "${BASE}use-system-font" "false"
 
-    dconf write "${BASE}font" "'JetBrainsMono Nerd Font 13'"
+    dconf write "${BASE}font" "'JetBrainsMono Nerd Font 10'"
 
     dconf write "${BASE}background-color" "'#0D1117'"
     dconf write "${BASE}foreground-color" "'#C9D1D9'"
@@ -265,3 +137,5 @@ if [ -n "$PROFILE_ID" ]; then
 '#F0F6FC'
 ]"
 fi
+
+echo "=== Done! Restart your terminal or run 'zsh' ==="

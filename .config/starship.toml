@@ -1,0 +1,89 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = false
+
+format = """
+$os\
+$time \
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$php\
+$docker_context\
+$cmd_duration\
+$line_break\
+$character
+"""
+
+[os]
+disabled = false
+
+[os.symbols]
+Ubuntu = " "
+Linux = " "
+
+[time]
+disabled = false
+time_format = "%H:%M"
+format = "[$time](#FF7B72) "
+
+[directory]
+style = "bold #58A6FF"
+truncation_length = 3
+read_only = " 󰌾"
+
+[git_branch]
+symbol = " "
+style = "bold #D2A8FF"
+
+[git_status]
+style = "#E3B341"
+
+[nodejs]
+symbol = " "
+style = "#7EE787"
+
+[php]
+symbol = " "
+style = "#79C0FF"
+
+[docker_context]
+symbol = " "
+style = "#58A6FF"
+
+[cmd_duration]
+min_time = 1000
+style = "#E3B341"
+
+[character]
+success_symbol = "[❯](bold #7EE787)"
+error_symbol = "[❯](bold #FF7B72)"
+vimcmd_symbol = "[❮](bold #58A6FF)"
+
+[aws]
+disabled = true
+
+[azure]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[kubernetes]
+disabled = true
+
+[terraform]
+disabled = true
+
+[openstack]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[package]
+disabled = true
+
+[container]
+disabled = true
