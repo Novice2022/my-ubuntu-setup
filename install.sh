@@ -4,6 +4,13 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+echo "=== Installing bootstrap dependencies ==="
+
+sudo apt install -y \
+    git \
+    curl \
+    ca-certificates
+
 echo "=== Updating packages ==="
 
 sudo apt update
@@ -19,6 +26,14 @@ sudo apt install -y \
     ripgrep \
     btop \
     jq
+
+echo "=== Installing recommended AGENTS.md tools ==="
+
+sudo apt install -y \
+    gh \
+    yq \
+    jc \
+    ripgrep-all
 
 echo "=== Installing Oh My Zsh ==="
 
@@ -80,6 +95,20 @@ if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
     fc-cache -fv
 fi
 
+echo "=== Installing Neovim ==="
+
+if ! command -v nvim >/dev/null 2>&1; then
+    (
+        TMP_DIR="$(mktemp -d)"
+        cd "$TMP_DIR"
+        NVIM_VERSION="nvim-linux-x86_64"
+        curl -LO "https://github.com/neovim/neovim/releases/latest/download/${NVIM_VERSION}.tar.gz"
+        sudo rm -rf "/opt/${NVIM_VERSION}"
+        sudo tar -C /opt -xzf "${NVIM_VERSION}.tar.gz"
+        rm -rf "$TMP_DIR"
+    )
+fi
+
 echo "=== Copying configs ==="
 
 mkdir -p "$HOME/.config"
@@ -103,6 +132,8 @@ if [ "$SHELL" != "$(command -v zsh)" ]; then
 fi
 
 echo "=== Applying GitHub Dark GNOME Terminal theme ==="
+
+if command -v dconf >/dev/null 2>&1 && command -v gsettings >/dev/null 2>&1; then
 
 PROFILE_ID=$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d "'")
 
@@ -136,6 +167,10 @@ if [ -n "$PROFILE_ID" ]; then
 '#56D4DD',
 '#F0F6FC'
 ]"
+fi
+
+else
+    echo "  Skipping GNOME Terminal theme (dconf/gsettings not found)"
 fi
 
 echo "=== Done! Restart your terminal or run 'zsh' ==="

@@ -1,0 +1,11 @@
+# Backup files created by install.sh
+.zshrc.bak.*
+.config/starship.toml.bak.*
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
